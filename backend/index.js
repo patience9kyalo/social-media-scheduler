@@ -8,7 +8,7 @@ const app = express();
 app.use(cors({
     origin: [
         'http://localhost:5173',
-        'https://postscheduler.vercel.app'
+        'https://social-media-scheduler-14xy.onrender.com/api'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
