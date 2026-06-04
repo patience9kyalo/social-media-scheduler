@@ -13,9 +13,6 @@ db.exec(`
         color TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
-
-    DROP TABLE IF EXISTS posts;
-    DROP TABLE IF EXISTS post_tags;
     
     CREATE TABLE IF NOT EXISTS posts (
 

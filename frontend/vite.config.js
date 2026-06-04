@@ -6,8 +6,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://localhost:3001',     // forwards /api calls to backend
-      '/icons': 'http://localhost:3001'    // forwards icon requests too
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true
+      }
     }
+  },
+  build: {
+    outDir: 'dist'  
   }
 })

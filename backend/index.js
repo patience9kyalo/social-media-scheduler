@@ -5,11 +5,17 @@ const db = require('./database');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:5173',
+        'https://postscheduler.vercel.app'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Routes
 app.use('/api/platforms', require('./Routes/platform'));
 app.use('/api/posts', require('./Routes/posts'));
 app.use('/api/tags', require('./Routes/tags'));
@@ -25,22 +31,21 @@ app.use((err, req, res, next) => {
 
 const runScheduler = () => {
     try {
-
         const duePosts = db.prepare(`
-            SELECT * FROM posts
-            WHERE status = 'scheduled'
-            AND scheduled_time <= CURRENT_TIMESTAMP
-            AND scheduled_time >= datetime(CURRENT_TIMESTAMP, '-10 minutes')
-        `).all();
+      SELECT * FROM posts
+      WHERE status = 'scheduled'
+      AND scheduled_time <= CURRENT_TIMESTAMP
+      AND scheduled_time >= datetime(CURRENT_TIMESTAMP, '-10 minutes')
+    `).all();
 
         if (duePosts.length > 0) {
             const publish = db.prepare(`
-                UPDATE posts SET
-                    status         = 'published',
-                    published_time = CURRENT_TIMESTAMP,
-                    updated_at     = CURRENT_TIMESTAMP
-                WHERE id = ?
-            `);
+        UPDATE posts SET
+          status         = 'published',
+          published_time = CURRENT_TIMESTAMP,
+          updated_at     = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `);
 
             db.transaction(() => {
                 for (const post of duePosts) {
@@ -51,18 +56,18 @@ const runScheduler = () => {
         }
 
         const overduePosts = db.prepare(`
-            SELECT * FROM posts
-            WHERE status = 'scheduled'
-            AND scheduled_time < datetime(CURRENT_TIMESTAMP, '-10 minutes')
-        `).all();
+      SELECT * FROM posts
+      WHERE status = 'scheduled'
+      AND scheduled_time < datetime(CURRENT_TIMESTAMP, '-10 minutes')
+    `).all();
 
         if (overduePosts.length > 0) {
             const markFailed = db.prepare(`
-                UPDATE posts SET
-                status     = 'failed',
-                updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-            `);
+        UPDATE posts SET
+          status     = 'failed',
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `);
 
             db.transaction(() => {
                 for (const post of overduePosts) {
@@ -77,7 +82,6 @@ const runScheduler = () => {
     }
 };
 
-// Run immediately on server start, then every minute
 runScheduler();
 setInterval(runScheduler, 60 * 1000);
 
