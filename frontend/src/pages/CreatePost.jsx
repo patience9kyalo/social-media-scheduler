@@ -1,19 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import PostForm from '../components/PostForm';
+import { createPost } from '../API/api';
 
 export default function CreatePost() {
     const navigate = useNavigate();
 
     const handleCreateSubmit = async (finalData) => {
         try {
-            const response = await fetch('/api/posts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(finalData),
-            });
-
-            if (response.ok) {
-                navigate('/');            // ← fixed route
+            const res = await createPost(finalData);
+            if (res.success) {
+                navigate('/');
             } else {
                 alert('Failed to save post');
             }
